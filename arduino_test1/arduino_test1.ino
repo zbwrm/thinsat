@@ -15,9 +15,9 @@ EventBits_t button_pressed = 0;
 void setup() {
 
   // Now set up two tasks to run independently.
-  xTaskCreate(TaskBlinkLED, (const portCHAR *)"BlinkLED", 128, NULL, 1, NULL); // toggles LED1 every .5s
-  xTaskCreate(TaskReadBttn, (const portCHAR *)"ReadBttn", 128, NULL, 3, NULL); // checks if button is pressed every 30ms
-  xTaskCreate(TaskDispBttn, (const portCHAR *)"DispBttn", 128, NULL, 2, NULL); // if button is pressed, enables LED2
+  xTaskCreate(TaskBlinkLED, (const portCHAR *)"BlinkLED", 128, NULL, 2, NULL); // toggles LED1 every .5s
+  xTaskCreate(TaskReadBttn, (const portCHAR *)"ReadBttn", 128, NULL, 1, NULL); // checks if button is pressed every 30ms
+  xTaskCreate(TaskDispBttn, (const portCHAR *)"DispBttn", 128, NULL, 3, NULL); // if button is pressed, enables LED2
 
  
   // Now the task scheduler, which takes over control of scheduling individual tasks, is automatically started.
@@ -36,7 +36,7 @@ void TaskBlinkLED(void *pvParameters)
 {
   (void) pvParameters;
 
-  pinMode(9, OUTPUT);
+  pinMode(LED1, OUTPUT);
   bool led1_status = false;
 
   for (;;)
@@ -45,8 +45,8 @@ void TaskBlinkLED(void *pvParameters)
       led1_status = !led1_status;
     }
 
-    digitalWrite(9, led1_status);   // turn the LED on
-    vTaskDelay( 500 / portTICK_PERIOD_MS ); // wait for .5s
+    digitalWrite(LED1, led1_status);   // turn the LED on
+    vTaskDelay( 100 / portTICK_PERIOD_MS ); // wait for .5s
     
   }
 }
@@ -55,14 +55,12 @@ void TaskReadBttn(void *pvParameters)
 {
   (void) pvParameters;
 
-  pinMode(16, INPUT);
+  pinMode(BTTN, INPUT);
 
   for (;;) // A Task shall never return or exit.
   {
-    vTaskDelay(355); // delay 35ms
-    if (BTTN == 1){
-      Serial.println("button pressed");
-    }
+    button_pressed = digitalRead(BTTN);
+    vTaskDelay(5); // delay 5ms
   }
 }
 
@@ -70,10 +68,11 @@ void TaskDispBttn(void *pvParameters)
 {
   (void) pvParameters;
 
-  pinMode(16, INPUT);
+  pinMode(LED2, OUTPUT);
 
   for (;;) // A Task shall never return or exit.
   {
-    continue;
+    digitalWrite(LED2, button_pressed);
+    vTaskDelay(5);
   }
 }
